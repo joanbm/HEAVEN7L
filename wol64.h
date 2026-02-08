@@ -3,7 +3,7 @@
 
 /**
  * ---------------------------------------
- * "WoL64": 32-bit Windows in 64-bit Linux
+ * "WoL64": 32-bit Windows on 64-bit Linux
  * ---------------------------------------
  * Running a x86_32 Windows EXE in a x86_64 Linux ELF creates a few challenges:
  *
