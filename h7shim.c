@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <pthread.h>
 #include <sys/mman.h>
 #include "winapi2sdl.h"
+#include "wol64.h"
 
 // --------
 // LAUNCHER
@@ -41,15 +43,24 @@ int main(int argc, char *argv[]) {
     fclose(h7exe);
 
     // Set up symbols used by the unpacker to find the rest of the symbols
-    *((void **)(image + 0x2D078)) = KERNEL32_LoadLibraryA;
-    *((void **)(image + 0x2D07C)) = KERNEL32_GetProcAddress;
-    *((void **)(image + 0x2D080)) = KERNEL32_ExitProcess;
+    *((void **)(image + 0x2D078)) = KERNEL32_LoadLibraryA_32to64;
+    *((void **)(image + 0x2D07C)) = KERNEL32_GetProcAddress_32to64;
+    *((void **)(image + 0x2D080)) = KERNEL32_ExitProcess_32to64;
 
     if (mprotect(image, IMAGESIZE, PROT_READ | PROT_WRITE | PROT_EXEC) != 0) {
         fprintf(stderr, "ERROR: Failed to change HEAVEN7 executable memory protection.\n");
     }
 
-    ((entrypoint_t)ENTRYPOINT)();
+    pthread_t h7thread;
+    if (!Launch32(&h7thread, (void *)ENTRYPOINT, NULL)) {
+        fprintf(stderr, "Failed to launch HEAVEN7 thread\n");
+        return EXIT_FAILURE;
+    }
+
+    if (pthread_join(h7thread, NULL) != 0) {
+        fprintf(stderr, "Could not join HEAVEN7 thread\n");
+        return false;
+    }
 
     return EXIT_SUCCESS;
 }
