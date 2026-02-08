@@ -147,7 +147,7 @@ void Call32(void *function, size_t nargs, ...) {
         "movl %%eax, (%%ebx)\n"
         "decl %%ecx\n"
         "jmp 1b\n"
-        "2:"
+        "2:\n"
         // We can not just do a normal jump from x86_64 to x86_32, since the
         // instruction set is different (e.g. PUSHAD does not exist on x86_64).
         // However, this can be done with a far call into __USER32_CS.
