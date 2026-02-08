@@ -41,7 +41,7 @@ void *Launch32ThreadFn(void *argsvp) {
     struct Launch32Target *args = (struct Launch32Target *)argsvp;
 
     // Configure DS/ES for 32-bit usage. Those are unused in 64-bit mode,
-    // and necessary memory accesses in 32 bit mode to work.
+    // and necessary for memory accesses in 32 bit mode to work.
 #ifdef DEBUG
     printf("Configuring DS/ES for 32 bits\n");
 #endif
@@ -54,7 +54,7 @@ void *Launch32ThreadFn(void *argsvp) {
         : "eax"
     );
 
-    Call32(args->function, 1 /* no arguments */, args->argument);
+    Call32(args->function, 1 /* nargs */, args->argument);
     free(args);
 }
 
