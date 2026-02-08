@@ -100,7 +100,7 @@ void Call32(void *function, size_t nargs, ...);
 #define STDCALL_TO_SYSV_REGS_15 STDCALL_TO_SYSV_REGS_6
 
 #define MK_TRAMPOLINE_32TO64(func, nargs) \
-    __attribute__((naked)) void func##_Call64AndRetf() { \
+    static __attribute__((naked)) void func##_Call64AndRetf() { \
         asm volatile ( \
             /* x86_32 __stdcall preserves ESI / EDI, but x86_64 SysV ABI does not,
                so save them in r12-r15 (callee preserved) to restore them later */ \
@@ -160,7 +160,7 @@ void Call32(void *function, size_t nargs, ...);
         ); \
     } \
      \
-    FarCallGateDescriptor func##_FarCall; \
+    static FarCallGateDescriptor func##_FarCall; \
      \
     __attribute__((constructor)) \
     static void func##_FarCall_Init(void) { \
