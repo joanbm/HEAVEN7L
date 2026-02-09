@@ -56,10 +56,15 @@ void *Launch32ThreadFn(void *argsvp) {
 
     Call32(args->function, 1 /* nargs */, args->argument);
     free(args);
+    return NULL;
 }
 
 bool Launch32(pthread_t *out_thread, void *function, void *argument) {
     struct Launch32Target *args = malloc(sizeof(struct Launch32Target));
+    if (args == NULL) {
+        fprintf(stderr, "Could not allocate Launch32 thread args\n");
+        return false;
+    }
     args->function = function;
     args->argument = argument;
 
@@ -71,31 +76,46 @@ bool Launch32(pthread_t *out_thread, void *function, void *argument) {
                            MAP_PRIVATE | MAP_ANONYMOUS | MAP_32BIT, -1, 0);
     if (low_stack == MAP_FAILED) {
         fprintf(stderr, "Could not allocate low stack\n");
-        return false;
+        goto cleanup_args;
     }
 
     pthread_attr_t thread_attr;
-    if (pthread_attr_init(&thread_attr) != 0 ||
-        pthread_attr_setstack(&thread_attr, low_stack, LOW_STACK_SIZE) != 0) {
+    if (pthread_attr_init(&thread_attr) != 0) {
         fprintf(stderr, "Could not set low stack thread attribute\n");
-        return false;
+        goto cleanup_args_stack;
+    }
+
+    if (pthread_attr_setstack(&thread_attr, low_stack, LOW_STACK_SIZE) != 0) {
+        fprintf(stderr, "Could not set low stack thread attribute\n");
+        goto cleanup_attr_args_stack;
     }
 
     if (pthread_create(out_thread, &thread_attr, Launch32ThreadFn,
                        args) != 0) {
         fprintf(stderr, "Could not create low stack thread\n");
-        return false;
+        goto cleanup_attr_args_stack;
     }
 
     pthread_attr_destroy(&thread_attr);
-    return true;
-
     // NOTE: low_stack is leaked here. We can not free it, see:
     // https://pubs.opengroup.org/onlinepubs/9699919799/functions/V2_chap02.html
     // "The application grants to the implementation permanent ownership of and
     //  control over the application-managed stack when the attributes object in
     //  which the stack or stackaddr attribute has been set is used [...]
     //  in particular, the region of memory cannot be freed"
+    return true;
+
+cleanup_attr_args_stack:
+    pthread_attr_destroy(&thread_attr);
+
+cleanup_args_stack:
+    if (munmap(low_stack, LOW_STACK_SIZE) != 0) {
+        fprintf(stderr, "WARNING: Could not unmap low stack on Launch32 failure\n");
+    }
+
+cleanup_args:
+    free(args);
+    return false;
 }
 
 __attribute__((naked)) void PivotStackAndCall32() {

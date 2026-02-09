@@ -30,15 +30,15 @@ int main(int argc, char *argv[]) {
     FILE *h7exe = fopen("HEAVEN7W.EXE", "rb");
     if (h7exe == NULL) {
         fprintf(stderr, "ERROR: Failed to open HEAVEN7 executable.\n");
-        return EXIT_FAILURE;
+        goto cleanup_image;
     }
+
     size_t r1 = fread(image, 1, 0x400, h7exe);
     size_t r2 = fread(image+0x1D000, 1, 0xFA00, h7exe);
     size_t r3 = fread(image+0x2D000, 1, 0x200, h7exe);
     if (r1+r2+r3 != 0x10000) {
         fprintf(stderr, "ERROR: Failed to read HEAVEN7 executable image.\n");
-        fclose(h7exe);
-        return EXIT_FAILURE;
+        goto cleanup_file_image;
     }
     fclose(h7exe);
 
@@ -49,18 +49,26 @@ int main(int argc, char *argv[]) {
 
     if (mprotect(image, IMAGESIZE, PROT_READ | PROT_WRITE | PROT_EXEC) != 0) {
         fprintf(stderr, "ERROR: Failed to change HEAVEN7 executable memory protection.\n");
+        goto cleanup_image;
     }
 
     pthread_t h7thread;
     if (!Launch32(&h7thread, (void *)ENTRYPOINT, NULL)) {
         fprintf(stderr, "Failed to launch HEAVEN7 thread\n");
-        return EXIT_FAILURE;
+        goto cleanup_image;
     }
 
     if (pthread_join(h7thread, NULL) != 0) {
         fprintf(stderr, "Could not join HEAVEN7 thread\n");
-        return false;
+        return EXIT_FAILURE;
     }
 
+    munmap(image, IMAGESIZE);
     return EXIT_SUCCESS;
+
+cleanup_file_image:
+    fclose(h7exe);
+cleanup_image:
+    munmap(image, IMAGESIZE);
+    return EXIT_FAILURE;
 }

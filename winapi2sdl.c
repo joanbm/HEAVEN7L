@@ -400,7 +400,10 @@ API_CALLBACK void *KERNEL32_CreateThread(
     LOG_EMULATED();
 
     HANDLE_THREAD *handle_thread = malloc32(sizeof(HANDLE_THREAD));
-    Launch32(&handle_thread->pthread, lpStartAddress, lpParameter);
+    if (!Launch32(&handle_thread->pthread, lpStartAddress, lpParameter)) {
+        fprintf(stderr, "Failed to lauch Win32 thread.\n");
+        exit(EXIT_FAILURE);
+    }
     return handle_thread;
 }
 MK_TRAMPOLINE_32TO64(KERNEL32_CreateThread, 6);
@@ -657,6 +660,15 @@ static USER32_WindowClassObject *WINDOWCLASS_HEAD = NULL;
 static const char *WINDOWDATA_WINDOWPROC = "WindowProc";
 static const char *WINDOWDATA_HWND = "HWND";
 
+static void free_windowclass_list(void)
+{
+    while (WINDOWCLASS_HEAD != NULL) {
+        USER32_WindowClassObject *next = WINDOWCLASS_HEAD->next;
+        free32(WINDOWCLASS_HEAD);
+        WINDOWCLASS_HEAD = next;
+    }
+}
+
 API_CALLBACK void *USER32_RegisterClassA(const void *wndClass)
 {
     LOG_EMULATED();
@@ -700,7 +712,7 @@ API_CALLBACK void *USER32_CreateWindowExA(
     SDL_SetWindowData(sdl_window, WINDOWDATA_WINDOWPROC, class->windowProc);
 
     // Create HWND, and associate it so we can recover later it from SDL events
-    HWND *hwnd = malloc32(sizeof(hwnd));
+    HWND *hwnd = malloc32(sizeof(HWND));
     hwnd->sdl_window = sdl_window;
     SDL_SetWindowData(sdl_window, WINDOWDATA_HWND, hwnd);
 
@@ -1066,10 +1078,16 @@ API_CALLBACK void *DDRAW_Surface_Lock(void *cominterface, void *rect, void *surf
     assert(surfaceobj->lo32_for_sdl_pixbuf == NULL);
 
     int height;
-    SDL_QueryTexture(surfaceobj->texture, NULL, NULL, NULL, &height);
+    if (SDL_QueryTexture(surfaceobj->texture, NULL, NULL, NULL, &height) < 0) {
+        fprintf(stderr, "Couldn't query SDL texture: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+    }
 
     int pitch;
-    SDL_LockTexture(surfaceobj->texture, NULL, &surfaceobj->sdl_pixbuf, &pitch);
+    if (SDL_LockTexture(surfaceobj->texture, NULL, &surfaceobj->sdl_pixbuf, &pitch) < 0) {
+        fprintf(stderr, "Couldn't lock SDL texture: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+    }
 
     surfaceobj->sdl_pixbuf_size = height * pitch;
     surfaceobj->lo32_for_sdl_pixbuf = malloc32(surfaceobj->sdl_pixbuf_size);
@@ -1404,6 +1422,7 @@ bool WinAPI2SDL_Init(int argc, char *argv[]) {
 }
 
 void WinAPI2SDL_Quit() {
+    free_windowclass_list();
     free_command_line();
     SDL_Quit();
 }
