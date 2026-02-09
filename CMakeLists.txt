@@ -9,5 +9,5 @@ find_package(Threads REQUIRED)
 add_executable(h7shim h7shim.c winapi2sdl.c wol64.c)
 target_link_libraries(h7shim PRIVATE Threads::Threads SDL2::SDL2)
 
-target_link_options(h7shim PRIVATE -no-pie -Wl,-T,${CMAKE_CURRENT_SOURCE_DIR}/reserve.ld)
+target_link_options(h7shim PRIVATE -no-pie -Wl,-Ttext-segment=0x500000 -Wl,-T,${CMAKE_CURRENT_SOURCE_DIR}/reserve.ld)
 target_compile_options(h7shim PRIVATE -fomit-frame-pointer)
