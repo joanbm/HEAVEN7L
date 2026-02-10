@@ -34,3 +34,7 @@ cmake -B build && cmake --build build
 ./download_HEAVEN7W.sh
 build/HEAVEN7L
 ```
+
+Thanks to
+---------
+[@atesteve](https://github.com/atesteve) for telling me about the FAR CALL trick to implement WoW64 mode.
