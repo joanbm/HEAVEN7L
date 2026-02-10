@@ -1,10 +1,12 @@
 HEAVEN7L
 ========
-A program to run the "[heaven seven](https://www.pouet.net/prod.php?which=5)" 64k demo by Exceed on Linux (or other platforms) via SDL.
+A program to run the "[heaven seven](https://www.pouet.net/prod.php?which=5)" 64k Windows demo by Exceed on 64-bit Linux via SDL.
 
 ![Obligatory screenshot](screenshot.png)
 
-This works similarly to [Wine](https://www.winehq.org/): It runs the original executable and implements a translator from Win32/DirectDraw/DirectAudio/etc. API calls to SDL.
+It uses 2 techniques, similar to [Wine](https://www.winehq.org/):
+* **Translating Win32/DirectDraw/DirectAudio/etc. API calls to SDL.**
+* **Jumping across 32-bit and 64-bit code via FAR CALL (WoW64 / "Heaven's Gate")**.
 
 Why? Wine already exists!
 -------------------------
@@ -18,13 +20,12 @@ You will need:
 * CMake
 * curl
 * unzip
-* SDL2 (32-bit version)
+* SDL2 (64-bit version)
 
 In Debian, you can use the following commands:
 ```sh
-sudo dpkg --add-architecture i386
 sudo apt update
-sudo apt install build-essential cmake curl unzip gcc-multilib libsdl2-dev:i386
+sudo apt install build-essential cmake curl unzip libsdl2-dev
 ```
 
 Then, build HEAVEN7L, download the "heaven seven" demo, and run it as follows:
