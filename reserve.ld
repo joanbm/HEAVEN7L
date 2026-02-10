@@ -3,11 +3,11 @@
  */
 SECTIONS
 {
-  .h7shim_reserve 0x400000 (NOLOAD) :
+  .heaven7l_reserve 0x400000 (NOLOAD) :
   {
-    PROVIDE(__h7shim_reserved_start = .);
+    PROVIDE(__heaven7l_reserved_start = .);
     . += 0x2E000;
-    PROVIDE(__h7shim_reserved_end = .);
+    PROVIDE(__heaven7l_reserved_end = .);
   }
 }
 INSERT BEFORE .text;

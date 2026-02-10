@@ -1,5 +1,5 @@
-H7Shim
-======
+HEAVEN7L
+========
 A program to run the "[heaven seven](https://www.pouet.net/prod.php?which=5)" 64k demo by Exceed on Linux (or other platforms) via SDL.
 
 ![Obligatory screenshot](screenshot.png)
@@ -27,9 +27,9 @@ sudo apt update
 sudo apt install build-essential cmake curl unzip gcc-multilib libsdl2-dev:i386
 ```
 
-Then, build H7Shim, download the "heaven seven" demo, and run it as follows:
+Then, build HEAVEN7L, download the "heaven seven" demo, and run it as follows:
 ```sh
 cmake -B build && cmake --build build
 ./download_HEAVEN7W.sh
-build/h7shim
+build/HEAVEN7L
 ```

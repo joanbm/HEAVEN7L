@@ -1367,8 +1367,8 @@ static int is_simple_command(const char *s) {
 
 // Converts a argc / argv pair to a single command line string,
 // quoting arguments and escaping characters if necessary
-// e.g. argv = ['./h7shim', 'w', 'the game', 'the ga"\me']
-// -> './h7shim w "the game" "the ga\"\\me"'
+// e.g. argv = ['./HEAVEN7L', 'w', 'the game', 'the ga"\me']
+// -> './HEAVEN7L w "the game" "the ga\"\\me"'
 // NOTE: This function is not bulletproof (e.g. UTF-8 support, )
 static char *ArgvToCommandLine(int argc, char *argv[]) {
     size_t maxlen = 1;
