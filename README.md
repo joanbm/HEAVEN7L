@@ -28,11 +28,9 @@ sudo apt update
 sudo apt install build-essential cmake curl libarchive-tools libsdl2-dev
 ```
 
-Then, build HEAVEN7L, download the "heaven seven" demo, and run it as follows:
+Then, build and run it as follows:
 ```sh
-cmake -B build && cmake --build build
-./download_HEAVEN7W.sh
-build/HEAVEN7L
+cmake -B build && cmake --build build && build/HEAVEN7L
 ```
 
 Thanks to
