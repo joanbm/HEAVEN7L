@@ -19,13 +19,13 @@ You will need:
 * Basic build tools (GCC, make, etc.), with 32-bit support
 * CMake
 * curl
-* unzip
+* bsdtar (from libarchive-tools)
 * SDL2 (64-bit version)
 
 In Debian, you can use the following commands:
 ```sh
 sudo apt update
-sudo apt install build-essential cmake curl unzip libsdl2-dev
+sudo apt install build-essential cmake curl libarchive-tools libsdl2-dev
 ```
 
 Then, build HEAVEN7L, download the "heaven seven" demo, and run it as follows:
