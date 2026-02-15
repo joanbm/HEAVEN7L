@@ -106,11 +106,14 @@ void Call32(void *function, size_t nargs, ...);
                so save them in r12-r15 (callee preserved) to restore them later */ \
             "movq %rsi, %r12\n" \
             "movq %rdi, %r13\n" \
-            /* Pop: 8 byte return vector of FAR CALL */ \
-            "popq %r14\n" \
-            /* Pop: 4 byte return address of the 32-bit function */ \
-            "movl (%rsp), %r15d\n" \
-            "addq $4, %rsp\n" \
+            /* Save 4 byte return address of the 32-bit function
+               (it's right beyond the 8 byte return vector of the FAR CALL) */ \
+            "movl 8(%esp), %r15d\n" \
+            /* Set EAX to point to the first of the 32-bit arguments */ \
+            "leal 12(%esp), %eax\n" \
+            /* Push the 32-bit return address as 64 bits.
+               This avoids a crash if pthread_cancel unwinds the thread. */ \
+            "push %r15\n" \
             /* 32-bit stdcall to 64-bit SysV calling convention ABI, part 1:
              * Expand each 32-bit argument in the stack to 64 bits.
              * This is a bit wasfteful since:
@@ -118,24 +121,14 @@ void Call32(void *function, size_t nargs, ...);
              *   registers, just to make our life easier.
              * - Similarly, we use a runtime loop instead of emitting a
                  taylor-made codegen for the number of arguments */ \
-            "movl %esp, %eax\n" \
-            /* Extra 8 bytes to later push the 32-bit return address as 64 bits */ \
-            "subl $(" QUOTE(nargs*4) "+8), %esp\n" \
             "movl $" QUOTE(nargs) ", %edx\n" \
             "1:\n" \
-            "cmpl $0, %edx\n" \
-            "je 2f\n" \
-            "movl (%eax), %ecx\n" \
-            "movq %rcx, (%rsp)\n" \
-            "addl $4, %eax\n" \
-            "addl $8, %esp\n" \
             "decl %edx\n" \
-            "jmp 1b\n" \
+            "jl 2f\n" \
+            "movl (%eax,%edx,4), %ecx\n" \
+            "push %rcx\n" \
+            "jg 1b\n" \
             "2:\n" \
-            /* Push the 32-bit return address as 64 bits.
-               This avoids a crash if pthread_cancel unwinds the thread. */ \
-            "movq %r15, (%rsp)\n" \
-            "subl $(" QUOTE(nargs*8) "), %esp\n" \
             /* 32-bit stdcall to 64-bit SysV calling convention ABI, part 2:
              * Move up to 6 (expanded) stack arguments to registers */ \
             CONCATENATE(STDCALL_TO_SYSV_REGS_, nargs) \
@@ -144,22 +137,24 @@ void Call32(void *function, size_t nargs, ...);
             /* 32-bit stdcall to 64-bit SysV calling convention ABI, part 3:
              * Since syscall is callee cleanup by SysV is caller cleanup,
              * we have to clean up the stack (if we have more than 6 arguments;
-             * otherwise there's nothing to clean */ \
-            "movl $" QUOTE(nargs) ", %edx\n" \
-            "cmpl $6, %edx\n" \
-            "jl 3f\n" \
-            "sub $6, %edx\n" \
-            /* Note that here we advance 8 bytes for each argument, since we
-               are advancing over *expanded* stack arguments. */ \
-            "lea (%esp, %edx, 8), %esp\n" \
-            "3:\n" \
+             * otherwise there's nothing to clean. Notes:
+             * - Since we are advancing over *expanded* stack arguments,
+                 we have to advance 8 bytes for each argument.
+             * - The minus sign here is because the GNU assembler returns -1
+                 for a true comparison */ \
+            "addl $((" QUOTE(nargs) " - 6) * -(" QUOTE(nargs) " > 6)) * 8, %esp\n" \
             /* Pop the expanded 32-bit return address of the 32-bit function */ \
             "pop %r15\n" \
-            /* Push: 4 byte return address of the 32-bit function */ \
-            "subq $4, %rsp\n" \
-            "movl %r15d, (%rsp)\n" \
-            /* Push: 8 byte return vector of FAR CALL */ \
-            "pushq %r14\n" \
+            /* Pop the 8 byte return vector of the FAR CALL */ \
+            "pop %r14\n" \
+            /* Advance over the original 32-bit return address + arguments */ \
+            "addl $(" QUOTE(nargs*4+4) "), %esp\n" \
+            /* Push 4 byte return address of the 32-bit function */ \
+            "subl $4, %esp\n" \
+            "movl %r15d, (%esp)\n" \
+            /* Push 8 byte return vector of the FAR CALL */ \
+            "push %r14\n" \
+            /* Restore saved registers */ \
             "movq %r12, %rsi\n" \
             "movq %r13, %rdi\n" \
             "retfl\n" \
