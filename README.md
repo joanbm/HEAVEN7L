@@ -5,7 +5,7 @@ A program to run the "[heaven seven](https://www.pouet.net/prod.php?which=5)" 64
 ![Obligatory screenshot](screenshot.png)
 
 It uses 2 techniques, similar to [Wine](https://www.winehq.org/):
-* **Translating Win32/DirectDraw/DirectAudio/etc. API calls to SDL.**
+* **Translating Win32/DirectDraw/DirectSound/etc. API calls to SDL.**
 * **Jumping across 32-bit and 64-bit code via FAR CALL (WoW64 / "Heaven's Gate")**.
 
 Why? Wine already exists!
@@ -16,13 +16,13 @@ Quickstart
 ----------
 You will need:
 * A x86_64 computer
-* Basic build tools (GCC, make, etc.), with 32-bit support
+* Basic build tools (GCC, make, etc.)
 * CMake
 * curl
 * bsdtar (from libarchive-tools)
 * SDL2 (64-bit version)
 
-In Debian, you can use the following commands:
+On Debian, you can use the following commands:
 ```sh
 sudo apt update
 sudo apt install build-essential cmake curl libarchive-tools libsdl2-dev
