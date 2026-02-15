@@ -421,7 +421,6 @@ API_CALLBACK uint32_t KERNEL32_TerminateThread(void *thread, uint32_t UNUSED(exi
     LOG_EMULATED();
 
     HANDLE_THREAD *hthread = (HANDLE_THREAD *)thread;
-    fprintf(stderr, "FIXME: Thread cancellation does not work in WoL64 mode yet, expect a crash.\n");
     pthread_cancel(hthread->pthread);
     pthread_join(hthread->pthread, NULL);
     return 1;

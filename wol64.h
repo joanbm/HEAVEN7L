@@ -119,7 +119,8 @@ void Call32(void *function, size_t nargs, ...);
              * - Similarly, we use a runtime loop instead of emitting a
                  taylor-made codegen for the number of arguments */ \
             "movl %esp, %eax\n" \
-            "subl $(" QUOTE(nargs*4) "), %esp\n" \
+            /* Extra 8 bytes to later push the 32-bit return address as 64 bits */ \
+            "subl $(" QUOTE(nargs*4) "+8), %esp\n" \
             "movl $" QUOTE(nargs) ", %edx\n" \
             "1:\n" \
             "cmpl $0, %edx\n" \
@@ -131,6 +132,9 @@ void Call32(void *function, size_t nargs, ...);
             "decl %edx\n" \
             "jmp 1b\n" \
             "2:\n" \
+            /* Push the 32-bit return address as 64 bits.
+               This avoids a crash if pthread_cancel unwinds the thread. */ \
+            "movq %r15, (%rsp)\n" \
             "subl $(" QUOTE(nargs*8) "), %esp\n" \
             /* 32-bit stdcall to 64-bit SysV calling convention ABI, part 2:
              * Move up to 6 (expanded) stack arguments to registers */ \
@@ -149,6 +153,8 @@ void Call32(void *function, size_t nargs, ...);
                are advancing over *expanded* stack arguments. */ \
             "lea (%esp, %edx, 8), %esp\n" \
             "3:\n" \
+            /* Pop the expanded 32-bit return address of the 32-bit function */ \
+            "pop %r15\n" \
             /* Push: 4 byte return address of the 32-bit function */ \
             "subq $4, %rsp\n" \
             "movl %r15d, (%rsp)\n" \
