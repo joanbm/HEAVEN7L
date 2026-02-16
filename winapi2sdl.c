@@ -562,9 +562,9 @@ static bool symbol_is_ordinal(const char *p)
 
 static bool symbol_compare(const char *s1, const char *s2)
 {
-        return
-            (symbol_is_ordinal(s1) && symbol_is_ordinal(s2) && s1 == s2) ||
-            (!symbol_is_ordinal(s1) && !symbol_is_ordinal(s2) && strcmp(s1, s2) == 0);
+    return
+        (symbol_is_ordinal(s1) && symbol_is_ordinal(s2) && s1 == s2) ||
+        (!symbol_is_ordinal(s1) && !symbol_is_ordinal(s2) && strcmp(s1, s2) == 0);
 }
 
 API_CALLBACK void *KERNEL32_GetProcAddress(void *module, const char *procName)
