@@ -688,7 +688,7 @@ API_CALLBACK void *USER32_RegisterClassA(const void *wndClass)
 MK_TRAMPOLINE_32TO64(USER32_RegisterClassA, 1)
 
 API_CALLBACK void *USER32_CreateWindowExA(
-    uint32_t UNUSED(exStyle), const char *className, const char *UNUSED(windowName), uint32_t UNUSED(style),
+    uint32_t UNUSED(exStyle), const char *className, const char *windowName, uint32_t UNUSED(style),
     int UNUSED(x), int UNUSED(y), int UNUSED(width), int UNUSED(height),
     void *UNUSED(hwndParent), void *UNUSED(menu), void *UNUSED(instance), void *UNUSED(pparam))
 {
@@ -701,7 +701,7 @@ API_CALLBACK void *USER32_CreateWindowExA(
     assert(class != NULL);
 
     // Create window and associate windowproc for later calling
-    SDL_Window *sdl_window = SDL_CreateWindow("HEAVEN7",
+    SDL_Window *sdl_window = SDL_CreateWindow(windowName,
                                               SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                               123, 123, 0); // Actual size will be set later
     if (sdl_window == NULL) {
