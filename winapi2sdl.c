@@ -1249,7 +1249,8 @@ API_CALLBACK void *DDRAW_CreateSurface(
     if (!is_primary_surface) {
         SDL_SetWindowSize(ddraw->sdl_window, width, height);
 
-        surfaceobj->renderer = SDL_CreateRenderer(ddraw->sdl_window, -1, 0);
+        surfaceobj->renderer = SDL_CreateRenderer(ddraw->sdl_window, -1,
+                                                  SDL_RENDERER_PRESENTVSYNC);
         if (surfaceobj->renderer == NULL) {
             fprintf(stderr, "Couldn't open SDL renderer: %s\n", SDL_GetError());
             exit(EXIT_FAILURE);
